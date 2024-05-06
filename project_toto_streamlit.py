@@ -24,9 +24,10 @@
 
 import streamlit as st
 
-st.write("Project Toto")
+st.write("Project Toto2")
 st.write("## Real-Time Intelligent System for Tornado Prediction")
 x = st.text_input("Spring 2024", "Real-Time Intelligent Systems")
 
 if st.button("Click Me"):
     st.write(f"Your count are you looking for `{x}`")
+
