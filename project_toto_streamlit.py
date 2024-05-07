@@ -1,159 +1,78 @@
-# # Ensure Streamit is installed:
-
-# conda activate base
-# pip install streamlit
-# conda install -c conda-forge streamlit
-
-# # Check if Streamlit is installed:
-
-# streamlit --version
-
-# # Running the Streamlit App:
-
-# streamlit hello
-
-# # Environment Issues:
-# which python
-# which streamlit
-
-# # Reinstall Streamlit:
-
-# pip uninstall streamlit
-# pip install streamlit
-
-
-# import streamlit as st
-
-# st.write("Project Toto")
-# st.write("## Real-Time Intelligent System for Tornado Prediction")
-# x = st.text_input("Spring 2024", "Real-Time Intelligent Systems")
-
-# if st.button("Click Me"):
-#     st.write(f"Your count are you looking for `{x}`")
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
-from datetime import datetime, timedelta
+import geopandas as gpd
+from datetime import datetime, timedelta, date, time
 
-# Load the data
-@st.cache_data
-def load_data():
-    data = pd.read_csv('tornado_risk.csv', header =0)
-    data['DateTime'] = pd.to_datetime(data['DateTime'])  # Ensure DateTime is in pandas datetime format
+# Load tornado risk data
+@st.cache_data  # Use the correct decorator for caching
+def load_tornado_risk_data():
+    data = pd.read_csv('tornado_risk.csv')
+    data['DateTime'] = pd.to_datetime(data['DateTime'])  # Ensure proper datetime format
     return data
 
-df = load_data()
+tornado_data = load_tornado_risk_data()
+print(tornado_data.head())
 
-# User interface
-st.title("Project Toto")
-st.header("Real-Time Intelligent System for Tornado Prediction")
+# Load shapefile
+@st.cache_data  # Use the correct decorator for caching
+def load_shapefile():
+    gdf = gpd.read_file('Iowa_County_Boundaries/IowaCounties.shp')  # Update the path as needed
+    return gdf
 
-st.write(df.columns)  # This will print all column names in the DataFrame
-st.write(df.head())  # This will print the first 5 rows of the DataFrame
+shapefile_data = load_shapefile()
+print(shapefile_data.head())
 
-# Selection of county
-county = st.selectbox("Select a County:", df['CountyDisplayName'].unique())
+# Merging shapefile with tornado risk data
+@st.cache_data #(allow_output_mutation=True)  # Correct decorator for caching with mutation allowed
+def merge_data(_shapefile, _tornado_data):
+    merged_data = _shapefile.merge(_tornado_data, left_on=['CountyName','StateAbbr'], right_on=['County Name','State'], how='left')
+    return merged_data
 
-now_time = pd.Timestamp(datetime.now() )
-st.write("Now Time: ",now_time)
+merged_gdf = merge_data(shapefile_data, tornado_data)
 
-# Calculate one year ago from today, keeping as Timestamp for comparison
-one_year_ago = pd.Timestamp(datetime.now() - timedelta(days=500))
-st.write("One year ago: ",one_year_ago)
+# Define color scale logic and apply it to the DataFrame
+def apply_color_scale(df):
+    colors = []
+    for risk in df['TornadoRisk']:
+        if risk < 0.5:
+            colors.append([0, 0, 255])  # Blue
+        elif risk < 0.75:
+            colors.append([255, 255, 0])  # Yellow
+        else:
+            colors.append([255, 0, 0])  # Red
+    df['color'] = colors
 
-# Determine the maximum of the minimum datetime in your data and one year ago
-min_time = max(df['DateTime'].min(), one_year_ago)
-st.write("Min Time: ",min_time)
+apply_color_scale(merged_gdf)
 
-# Get the maximum datetime from your data
-max_time = df['DateTime'].max()
-st.write("Max Time: ",max_time)
+# Static variable for date and time
+selected_datetime = st.sidebar.date_input("Select Date", value=pd.Timestamp('2023-02-26'))
+selected_time = st.sidebar.time_input("Select Time", value=pd.Timestamp('2023-02-26 09:43:39 AM').time())
+selected_datetime = pd.Timestamp.combine(selected_datetime, selected_time)
 
-# Convert Timestamps to POSIX timestamp for slider
-min_time_unix = min_time.timestamp()
-max_time_unix = max_time.timestamp()
+# Filter data based on selected datetime
+filtered_data = merged_gdf[merged_gdf['DateTime'] == selected_datetime]
 
-# # Display text for min and max times
-st.markdown(f"**Minimum:** {min_time.strftime('%m/%d/%Y %H:%M')} **Maximum:** {max_time.strftime('%m/%d/%Y %H:%M')}")
+# Create PyDeck map
+view_state = pdk.ViewState(latitude=42.0308, longitude=-93.6319, zoom=7)
 
-# # Debug print statements
-# st.write(f"Minimum time (Unix): {min_time_unix} -> {datetime.fromtimestamp(min_time_unix)}")
-# st.write(f"Maximum time (Unix): {max_time_unix} -> {datetime.fromtimestamp(max_time_unix)}")
-
-# Setup the slider using UNIX timestamps
-selected_time_unix = st.slider(
-    "Select Date and Time:",
-    min_value=int(min_time_unix),
-    max_value=int(max_time_unix),
-    value=int(min_time_unix),
-    # format="MM/DD/YY HH:mm"
+layer = pdk.Layer(
+    'GeoJsonLayer',
+    data=filtered_data,
+    get_fill_color='color',  # Use the precomputed 'color' column
+    get_line_color=[255, 255, 255],  # White lines for county boundaries
+    pickable=True,
+    stroked=True,  # Enable stroking to draw boundaries
+    filled=True,
+    line_width_min_pixels=1,  # Minimum line width in pixels
+    extruded=False,
 )
 
-# Convert selected time back and display
-selected_time = datetime.fromtimestamp(selected_time_unix)
-st.write(f"Selected Date and Time: {selected_time.strftime('%m/%d/%Y %H:%M')}")
+deck = pdk.Deck(
+    layers=[layer],
+    initial_view_state=view_state,
+    tooltip={"text": "{CountyName}: {TornadoRisk}"}
+)
 
-# # Convert selected UNIX timestamp back to Timestamp
-# selected_time = pd.Timestamp(datetime.fromtimestamp(selected_time_unix))
-
-# # Display the selected date in your desired format
-# st.write("Selected Date and Time:", selected_time.strftime('%m/%d/%Y %I:%M:%S %p'))
-
-# Filter data by selected county and time
-filtered_data = df[(df['CountyDisplayName'] == county) & 
-                   (df['DateTime'] == selected_time)]
-
-# Other functions and setup...
-
-
-# Function to prepare and return map df
-def map_data(data):
-    if data.empty:
-        st.write("No data available for selected time and county.")
-        return None
-
-    # Make sure these names match your DataFrame's column names
-    latitude_mean = data['Latitude'].mean() if 'Latitude' in data.columns else None
-    longitude_mean = data['Longitude'].mean() if 'Longitude' in data.columns else None
-
-    if latitude_mean is None or longitude_mean is None:
-        st.error("Required columns 'Latitude' or 'Longitude' are missing in the dataset.")
-        return None
-
-    # Setup view state for map assuming latitude and longitude are provided
-    view_state = pdk.ViewState(
-        latitude=latitude_mean,
-        longitude=longitude_mean,
-        zoom=8,
-        pitch=0)
-
-    # Define color scale for TornadoRisk
-    color_scale = [
-        [0, 128, 255],  # Blue for low risk
-        [255, 255, 0],  # Yellow for medium risk
-        [255, 0, 0]     # Red for high risk
-    ]
-    
-    data['color'] = data['TornadoRisk'].apply(lambda x: color_scale[0] if x < 0.5 else (color_scale[1] if x < 0.75 else color_scale[2]))
-
-    # Setup PyDeck layer for rendering
-    layer = pdk.Layer(
-        "GeoJsonLayer",
-        data,
-        opacity=0.8,
-        stroked=False,
-        filled=True,
-        extruded=True,
-        wireframe=True,
-        get_fill_color='color',
-        get_line_color=[0, 0, 0, 255]
-    )
-
-    return pdk.Deck(layers=[layer], initial_view_state=view_state)
-
-
-deck = map_data(filtered_data)
-if deck:
-    st.pydeck_chart(deck)
+st.pydeck_chart(deck)
