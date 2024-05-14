@@ -31,12 +31,20 @@
 # if st.button("Click Me"):
 #     st.write(f"Your count are you looking for `{x}`")
 
+
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
 import geopandas as gpd
 from datetime import datetime, timedelta, date, time
+import streamlit as st
+import pandas as pd
+import geopandas as gpd
+from datetime import datetime
+from plotnine import ggplot, aes, geom_map, scale_fill_gradient, labs, theme_minimal
+import matplotlib.pyplot as plt
 
 # Load tornado risk data
 @st.cache_data
@@ -104,12 +112,6 @@ deck = pdk.Deck(
 )
 
 st.pydeck_chart(deck)
-
-
-
-
-
-
 
 
 
