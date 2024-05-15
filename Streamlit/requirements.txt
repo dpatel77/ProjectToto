@@ -5,5 +5,4 @@ geopandas
 plotly
 folium
 datetime
-json
 streamlit_folium
