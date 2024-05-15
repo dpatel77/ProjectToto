@@ -2,3 +2,4 @@ matplotlib
 streamlit
 pandas
 geopandas
+plotly
