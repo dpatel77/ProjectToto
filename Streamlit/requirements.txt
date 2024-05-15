@@ -3,3 +3,7 @@ streamlit
 pandas
 geopandas
 plotly
+folium
+datetime
+json
+streamlit_folium
