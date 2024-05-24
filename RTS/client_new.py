@@ -28,21 +28,18 @@ with open(model_path, 'rb') as file:
 geojson_path = os.path.join(script_dir, 'Iowa_County_Boundaries.geojson')
 iowa_geo = gpd.read_file(geojson_path)
 
-# Print column names for inspection
-#print(iowa_geo.columns)
-
 # Define the update_predictions function
 def update_predictions(new_record, df_st, model, features):
     # Extract the timestamp from the new record
     new_time = new_record['time']
     
     # Update max_time to be the latest timestamp
-    max_time = max(df_st['Time'].max(), new_time) if not df_st.empty else new_time
+    max_time = new_time if df_st.empty else max(df_st['Time'].max(), new_time)
     
     county = new_record['county_name']
     
     # Check if the county is already in df_st
-    if county in df_st['County'].values:
+    if not df_st.empty and county in df_st['County'].values:
         # Remove the existing record for the county
         df_st = df_st[df_st['County'] != county]
     
@@ -53,8 +50,12 @@ def update_predictions(new_record, df_st, model, features):
     pred = model.predict_proba(X)[0][1]
     
     # Append the new prediction to df_st
-    new_prediction = {'Time': new_time, 'County': county, 'Risk': pred}
-    df_st = pd.concat([df_st, pd.DataFrame([new_prediction])], ignore_index=True)
+    new_prediction = pd.DataFrame([{'Time': new_time, 'County': county, 'Risk': pred}])
+    if not new_prediction.isna().all().all():
+        st.write("New prediction: ", new_prediction)
+        st.write("DataFrame before concat: ", df_st)
+        df_st = pd.concat([df_st, new_prediction], ignore_index=True)
+        st.write("DataFrame after concat: ", df_st)
     
     # Sort df_st by the Risk value in descending order
     df_st = df_st.sort_values(by='Risk', ascending=False)
@@ -94,7 +95,7 @@ m = folium.Map(location=[42.0, -93.0], zoom_start=7)
 
 # Add counties to the map
 for _, row in iowa_geo.iterrows():
-    county_name = row['CountyName']  # Replace 'CountyName' with the correct column name
+    county_name = row['CountyName']  # Replace 'NAME' with the correct column name if different
     risk = df_st[df_st['County'] == county_name]['Risk'].values[0] if county_name in df_st['County'].values else 0
     color = get_color(risk)
     folium.GeoJson(
@@ -108,6 +109,9 @@ folium_static(m)
 # URL of the server
 url = 'http://localhost:8000'
 
+# Create a new event loop and set it as the current event loop
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
 # Run the event loop
-loop = asyncio.get_event_loop()
 loop.run_until_complete(stream_data(url))
