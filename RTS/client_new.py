@@ -3,6 +3,7 @@ import aiohttp
 import pandas as pd
 import json
 import pickle
+import xgboost
 import os
 import streamlit as st
 import geopandas as gpd
@@ -111,3 +112,10 @@ url = 'http://localhost:8000'
 # Run the event loop
 loop = asyncio.get_event_loop()
 loop.run_until_complete(stream_data(url))
+
+# try:
+#     loop = asyncio.get_event_loop()
+# except RuntimeError:
+#     loop = asyncio.new_event_loop()
+#     asyncio.set_event_loop(loop)
+#     st.write('Event loop created')
