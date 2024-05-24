@@ -161,4 +161,5 @@ cython_debug/
 secrets.py
 historical_weather_IA.csv
 datamodel.csv
-
+test_set.csv
+catboost_info/
