@@ -57,4 +57,6 @@ async def stream_data(url, model, features):
 
 if __name__ == "__main__":
     url = 'http://localhost:8000'
+    #clear weather data
+    os.remove("RTS/tornado_risk.parquet")
     asyncio.run(stream_data(url, model, features))

@@ -51,13 +51,13 @@ merged_df = iowa_geo.merge(st.session_state.df_st, on='county', how='left')
 # Set the color based on risk
 def get_color(risk):
     if pd.isna(risk):
-        return '#808080'  # Gray for missing data
+        return '#59d4ff'  # Gray for missing data
     elif risk > 0.85:
-        return '#FF0000'  # Red
+        return '#b21f35'  # Red
     elif risk > 0.5:
-        return '#FFFF00'  # Yellow
+        return '#ffcb35'  # Yellow
     else:
-        return '#00FF00'  # Green
+        return '#009e47'  # Green
 
 merged_df['color'] = merged_df['risk'].apply(get_color)
 
@@ -71,7 +71,7 @@ m = folium.Map(location=[41.878, -93.097], zoom_start=7)
 def style_function(feature):
     return {
         'fillColor': feature['properties']['color'],
-        'color': 'black',
+        'color': '#59d4ff',
         'weight': 1,
         'fillOpacity': 0.7,
     }
@@ -95,10 +95,13 @@ if st.button('Manual Refresh'):
     st.session_state.df_st = load_dataframe()
     st.rerun()
 
-st.rerun()  # Ensure the script is rerun every time it's loaded
+#st.rerun()  # Ensure the script is rerun every time it's loaded
 
 # Sleep for a few seconds to prevent rapid reruns
-time.sleep(10)
+time.sleep(3)
+
+st.session_state.df_st = load_dataframe()
+st.rerun()
 
 
 
