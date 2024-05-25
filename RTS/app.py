@@ -100,7 +100,7 @@ if st.button('Manual Refresh'):
 #st.rerun()  # Ensure the script is rerun every time it's loaded
 
 # Sleep for a few seconds to prevent rapid reruns
-# time.sleep(1)
+time.sleep(1)
 
 st.session_state.df_st = load_dataframe()
 st.rerun()
