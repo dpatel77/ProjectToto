@@ -19,7 +19,7 @@ features = ['temperature_2m', 'relative_humidity_2m', 'rain', 'pressure_msl', 's
             'soil_temperature_0_to_7cm', 'wind_shear']
 
 # Function to update predictions in the Parquet file
-def update_predictions(new_record, model, features, parquet_file='RTS/tornado_risk.parquet'):
+def update_predictions(new_record, model, features, parquet_file='tornado_risk.parquet'):
     # Extract the timestamp and county from the new record
     new_time = new_record['time']
     county = new_record['county_name']
@@ -43,6 +43,9 @@ def update_predictions(new_record, model, features, parquet_file='RTS/tornado_ri
     new_prediction = pd.DataFrame([{'time': new_time, 'county': county, 'risk': pred}])
     df = pd.concat([df, new_prediction], ignore_index=True)
     
+    # Ensure the directory exists
+    #os.makedirs(os.path.dirname(parquet_file), exist_ok=True)
+    
     # Save back to the Parquet file
     df.to_parquet(parquet_file)
 
@@ -58,5 +61,6 @@ async def stream_data(url, model, features):
 if __name__ == "__main__":
     url = 'http://localhost:8000'
     #clear weather data
-    os.remove("RTS/tornado_risk.parquet")
+    # Remove the Parquet file if it exists
+    
     asyncio.run(stream_data(url, model, features))
