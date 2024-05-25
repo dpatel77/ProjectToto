@@ -19,7 +19,7 @@ features = ['temperature_2m', 'relative_humidity_2m', 'rain', 'pressure_msl', 's
             'soil_temperature_0_to_7cm', 'wind_shear']
 
 # Function to update predictions in the Parquet file
-def update_predictions(new_record, model, features, parquet_file='tornado_risk.parquet'):
+def update_predictions(new_record, model, features, parquet_file='RTS/tornado_risk.parquet'):
     # Extract the timestamp and county from the new record
     new_time = new_record['time']
     county = new_record['county_name']
