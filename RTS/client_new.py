@@ -17,6 +17,7 @@ features = ['temperature_2m', 'relative_humidity_2m', 'rain', 'pressure_msl', 's
 
 # Initialize an empty DataFrame for storing predictions
 df_st = pd.DataFrame(columns=['Time', 'County', 'Risk'])
+st.write("Initial DataFrame: ", df_st)
 
 # Load the XGBoost model
 script_dir = os.path.dirname(__file__)  # Get the directory of the current script
