@@ -40,6 +40,8 @@ with col2:
     st.image(os.path.join(script_dir, 'project_toto_logo.png'), width=200)
     st.markdown('### Project By: Michael Goodman, Dharti Seagraves, Steve Veldman, and Forough Mofidi')
     st.markdown(f"**Iowa County Tornado Risk as of: {st.session_state.df_st['time'].max() if not st.session_state.df_st.empty else 'N/A'}**")
+    st.markdown(f"**County: {st.session_state.df_st['county'].max() if not st.session_state.df_st.empty else 'N/A'}**")
+    st.markdown(f"**Pred: {st.session_state.df_st['risk'].max() if not st.session_state.df_st.empty else 'N/A'}**")
 
 with col3:
     st.write("")
@@ -53,11 +55,11 @@ def get_color(risk):
     if pd.isna(risk):
         return '#59d4ff'  # Gray for missing data
     elif risk > 0.85:
-        return '#b21f35'  # Red
+        return '#c72b1d'  # Red
     elif risk > 0.5:
-        return '#ffcb35'  # Yellow
+        return '#fdbf3b'  # Yellow
     else:
-        return '#009e47'  # Green
+        return '#869755'  # Green
 
 merged_df['color'] = merged_df['risk'].apply(get_color)
 
@@ -71,7 +73,7 @@ m = folium.Map(location=[41.878, -93.097], zoom_start=7)
 def style_function(feature):
     return {
         'fillColor': feature['properties']['color'],
-        'color': '#59d4ff',
+        'color': '#c04e01',
         'weight': 1,
         'fillOpacity': 0.7,
     }
@@ -98,7 +100,7 @@ if st.button('Manual Refresh'):
 #st.rerun()  # Ensure the script is rerun every time it's loaded
 
 # Sleep for a few seconds to prevent rapid reruns
-time.sleep(3)
+# time.sleep(1)
 
 st.session_state.df_st = load_dataframe()
 st.rerun()
