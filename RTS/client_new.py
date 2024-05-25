@@ -116,10 +116,3 @@ asyncio.set_event_loop(loop)
 
 # Run the event loop
 loop.run_until_complete(stream_data(url))
-
-# try:
-#     loop = asyncio.get_event_loop()
-# except RuntimeError:
-#     loop = asyncio.new_event_loop()
-#     asyncio.set_event_loop(loop)
-#     st.write('Event loop created')

@@ -59,7 +59,7 @@ async def stream_data(url):
                 if line:
                     record = json.loads(line.decode('utf-8'))
                     df_st, _ = update_predictions(record, df_st, model, features)
-                    #print(df_st)  # Print the updated DataFrame to the console
+                    print(df_st)  # Print the updated DataFrame to the console
 
 # URL of the server
 url = 'http://localhost:8000'
