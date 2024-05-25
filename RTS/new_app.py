@@ -67,7 +67,7 @@ st.markdown(
 
 # Header section
 st.markdown('<div class="header">', unsafe_allow_html=True)
-st.image('project_toto_logo.png', width=200)
+st.image('RTS/project_toto_logo.png', width=200)
 st.markdown(
     """
     <div>
@@ -151,3 +151,9 @@ if st.button('Manual Refresh'):
 # Timestamp
 max_time = get_max_time(st.session_state.df_st)
 st.markdown(f'<div style="text-align: right;">Predictions as of {max_time}</div>', unsafe_allow_html=True)
+
+# Sleep for a few seconds to prevent rapid reruns
+time.sleep(1)
+
+st.session_state.df_st = load_dataframe()
+st.rerun()
